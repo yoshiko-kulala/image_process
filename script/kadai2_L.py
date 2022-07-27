@@ -14,10 +14,10 @@ from std_msgs.msg import Int8
 tools = pyocr.get_available_tools()
 tool = tools[0]
 
-p1 = np.array([400, 293])
-p2 = np.array([562, 293])
-p3 = np.array([364, 389])
-p4 = np.array([549, 389])
+p1 = np.array([361, 270])
+p2 = np.array([524, 274])
+p3 = np.array([314, 366])
+p4 = np.array([500, 368])
 
 src = np.float32([p1, p2, p3, p4])
 dst = np.float32([[0,0],[100,0],[0,100],[100,100]])
@@ -35,14 +35,14 @@ def process_image(msg):
         bridge = CvBridge()
         orig = bridge.compressed_imgmsg_to_cv2(msg, "bgr8")
 
- 	hsvLower_y = np.array([0, 32, 10])    
- 	hsvUpper_y = np.array([70, 240 ,240])   
+ 	hsvLower_y = np.array([30, 20, 40])    
+ 	hsvUpper_y = np.array([110, 240 ,240])   
      
  	hsvLower_m = np.array([60, 0, 0])   
  	hsvUpper_m = np.array([100, 240,240])  
      
- 	hsvLower_c = np.array([110, 32, 10])    
- 	hsvUpper_c = np.array([140, 240 ,240])
+ 	hsvLower_c = np.array([106, 10, 0])    
+ 	hsvUpper_c = np.array([176, 240 ,240])
 
         hsv = cv2.cvtColor(orig, cv2.COLOR_BGR2HSV)
 	my_debug = cv2.warpPerspective(orig, M,(100,100))
@@ -99,37 +99,96 @@ def process_image(msg):
  	white_area_m=cv2.countNonZero(moji_m_2)
  	white_area_c=cv2.countNonZero(moji_c_2)
 	
-	
-	
-	if white_area_y > 1800 and white_area_y < 2100:
-		print('L_Yellow_A')
-		a=2
-	if white_area_y > 1000 and white_area_y < 1500:
-		print('L_Yellow_B')
-		a=5
-	if white_area_y > 2250:
-		print('L_Yellow_C')
-		a=8
+	builder = pyocr.builders.TextBuilder(tesseract_layout=5)
+	result = tool.image_to_string(pil_img, lang="eng", builder=builder)
 
-	if white_area_m > 1800 and white_area_m < 2100:
-		print('L_Magenta_A')
-		a=1
-	if white_area_m > 1000 and white_area_m < 1500:
-		print('L_Magenta_B')
-		a=4
-	if white_area_m > 2250:
-		print('L_Magenta_C')
-		a=7
+        if 'c' in result:
+            result = 'C'
+        elif 'C' in result:
+            result = 'C'
+        elif 'E' in result:
+            result = 'B'
+        elif 'B' in result:
+            result = 'B'
+        else:
+            result = 'A'
+	
+	print(result)
 
-	if white_area_c > 1800 and white_area_c < 2100:
-		print('L_Cyan_A')
-		a=0
-	if white_area_c > 1000 and white_area_c < 1500:
-		print('L_Cyan_B')
-		a=3
-	if white_area_c > 2250:
-		print('L_Cyan_C')
-		a=6
+
+	if white_area_y > 1000:
+		if white_area_y > 1000 and white_area_y < 1500:
+			print('L_Yello_B')
+			b=5
+		elif 'C' in result:
+			print('L_Yello_C')
+			b=2
+		elif 'B' in result:
+			print('L_Yello_B')
+			b=5
+		elif 'A' in result:
+			print('L_Yello_A')
+			b=8
+
+	if white_area_m > 1000:
+		if white_area_m > 1000 and white_area_m < 1500:
+			print('L_Magenta_B')
+			b=4
+		elif 'C' in result:
+			print('L_Magenta_C')
+			b=1
+		elif 'B' in result:
+			print('L_Magenta_B')
+			b=4
+		elif 'A' in result:
+			print('L_Magenta_A')
+			b=7
+
+
+	if white_area_c > 1000:
+		if white_area_c > 1000 and white_area_c < 1500:
+			print('L_Cyan_B')
+			b=3
+		elif 'C' in result:
+			print('L_Cyan_C')
+			b=0
+		elif 'B' in result:
+			print('L_Cyan_B')
+			b=3
+		elif 'A' in result:
+			print('L_Cyan_A')
+			b=6
+
+	
+	# if white_area_y > 1800 and white_area_y < 2100:
+	# 	print('L_Yellow_A')
+	# 	a=2
+	# if white_area_y > 1000 and white_area_y < 1500:
+	# 	print('L_Yellow_B')
+	# 	a=5
+	# if white_area_y > 2250:
+	# 	print('L_Yellow_C')
+	# 	a=8
+
+	# if white_area_m > 1800 and white_area_m < 2100:
+	# 	print('L_Magenta_A')
+	# 	a=1
+	# if white_area_m > 1000 and white_area_m < 1500:
+	# 	print('L_Magenta_B')
+	# 	a=4
+	# if white_area_m > 2250:
+	# 	print('L_Magenta_C')
+	# 	a=7
+
+	# if white_area_c > 1800 and white_area_c < 2100:
+	# 	print('L_Cyan_A')
+	# 	a=0
+	# if white_area_c > 1000 and white_area_c < 1500:
+	# 	print('L_Cyan_B')
+	# 	a=3
+	# if white_area_c > 2250:
+	# 	print('L_Cyan_C')
+	# 	a=6
 	
 	pub3.publish(a)
 
@@ -141,9 +200,9 @@ def process_image(msg):
 	#cv2.imshow('C2', moji_c_2)
 	#cv2.imshow('M2', moji_m_2)
 
-	#cv2.imshow('m',hsv_mask_m)
- 	#cv2.imshow('y',hsv_mask_y)
- 	#cv2.imshow('c',hsv_mask_c)
+	cv2.imshow('m',hsv_mask_m)
+ 	# cv2.imshow('y',hsv_mask_y)
+ 	# cv2.imshow('c',hsv_mask_c)
 	#cv2.imshow('img',orig)
 
 	#print(white_area_y)
