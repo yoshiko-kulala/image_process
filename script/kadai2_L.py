@@ -26,11 +26,12 @@ M = cv2.getPerspectiveTransform(src, dst)
 kernel = np.ones((3, 3), np.uint8)
   
 pub3=rospy.Publisher('img_l',Int8,queue_size=10)
-a=0
+
 
 
 def process_image(msg):
     try:
+	a=0
         bridge = CvBridge()
         orig = bridge.compressed_imgmsg_to_cv2(msg, "bgr8")
 
@@ -44,6 +45,8 @@ def process_image(msg):
  	hsvUpper_c = np.array([140, 240 ,240])
 
         hsv = cv2.cvtColor(orig, cv2.COLOR_BGR2HSV)
+	my_debug = cv2.warpPerspective(orig, M,(100,100))
+	cv2.imshow('img_L',my_debug)
 
         hsv_mask_y = cv2.inRange(orig, hsvLower_y, hsvUpper_y)
  	hsv_mask_m = cv2.inRange(orig, hsvLower_m, hsvUpper_m)
@@ -130,9 +133,9 @@ def process_image(msg):
 	
 	pub3.publish(a)
 
-        cv2.imshow('Y_L', moji_y)
-	cv2.imshow('C_L', moji_c)
-	cv2.imshow('M_L', moji_m)
+        #cv2.imshow('Y_L', moji_y)
+	#cv2.imshow('C_L', moji_c)
+	#cv2.imshow('M_L', moji_m)
 
 	#cv2.imshow('Y2', moji_y_2)
 	#cv2.imshow('C2', moji_c_2)
